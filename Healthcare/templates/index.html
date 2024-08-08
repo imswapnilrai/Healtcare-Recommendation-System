@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Medicine Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<style>
+    .logo img {
+        width: 50px;
+        height: 50px;
+        margin-top: 0;
+        margin-left: 2px;
+    }
+
+    .modal-body-color {
+        background-color: #f8f9fa; /* Lighter background for modal body */
+    }
+
+    .container-custom {
+        background-color: #E3F2FD; /* Light blue background */
+        color: black;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .btn-custom {
+        background-color: #0D6EFD; /* Bootstrap primary color */
+        color: white;
+        width: auto;
+    }
+
+
+    .toggle-button {
+        background: linear-gradient(135deg, #0099ff, #66ccff); /* Blue gradient */
+        color: white;
+        font-weight: bold;
+        border-radius: 5px;
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        transition: background 0.3s, transform 0.3s;
+    }
+
+    .toggle-button:hover {
+        background: linear-gradient(135deg, #007acc, #4da3ff); /* Darker blue gradient on hover */
+        transform: scale(1.05); /* Slightly enlarge button on hover */
+    }
+
+    .toggle-button:active {
+        background: linear-gradient(135deg, #005fa3, #3399ff); /* Even darker blue gradient when clicked */
+        transform: scale(0.98); /* Slightly shrink button on click */
+    }
+
+</style>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- Navbar brand with image -->
+            <a class="navbar-brand d-flex align-items-center" href="#">              Recommendation System
+            </a>
+            
+            <!-- Toggler for mobile view -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <!-- Navigation links on the right -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/developer">Developer</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    
+    
+
+    <h4 class="text-center mt-4">Choose symptoms from the table !!!</h4>
+    <div class="container container-custom my-4">
+        <form action="/predict" method="post">
+            <div class="form-group mb-4">
+                <label for="symptoms">Type Symptoms</label>
+                <input type="text" class="form-control" name="symptoms" placeholder="Use symptoms like itching, skin rash, acidity..." id="symptoms">
+            </div>
+            <button class="btn btn-custom py-2 px-4 mx-auto d-block recommend-button">Recommend</button>
+        </form>
+    </div>
+
+    {% if predicted_disease %}
+    <h1 class="text-center mt-4">{{ predicted_disease }}</h1>
+    <div class="result-container mx-auto text-center">
+        <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#descriptionModal">Description</button>
+        <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#precautionModal">Precaution</button>
+        <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#medicationModal">Medication</button>
+        <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#dietModal">Diet</button>
+        <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#workoutModal">Workout</button>
+    </div>
+{% endif %}
+
+<!-- Description Modal -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content container-custom">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="descriptionModalLabel">Description</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body modal-body-color">
+                <p>{{ dis_des }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Precaution Modal -->
+<div class="modal fade" id="precautionModal" tabindex="-1" aria-labelledby="precautionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content container-custom">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="precautionModalLabel">Precaution</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body modal-body-color">
+                <ul>
+                    {% for i in dis_pre %}
+                    <li>{{ i }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medication Modal -->
+<div class="modal fade" id="medicationModal" tabindex="-1" aria-labelledby="medicationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content container-custom">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="medicationModalLabel">Medication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body modal-body-color">
+                <ul>
+                    {% for i in dis_med %}
+                    <li>{{ i }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Diet Modal -->
+<div class="modal fade" id="dietModal" tabindex="-1" aria-labelledby="dietModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content container-custom">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="dietModalLabel">Diet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body modal-body-color">
+                <ul>
+                    {% for i in dis_diet %}
+                    <li>{{ i }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workout Modal -->
+<div class="modal fade" id="workoutModal" tabindex="-1" aria-labelledby="workoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content container-custom">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="workoutModalLabel">Workout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body modal-body-color">
+                <ul>
+                    {% for i in dis_wrkout %}
+                    <li>{{ i }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    <div class="container table-container">
+        <h3 class="text-center">Symptoms Table</h3>
+        <div class="search-bar mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search for symptoms...">
+        </div>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Add</th>
+                    <th>Symptom</th>
+                    <th>Index</th>
+                </tr>
+            </thead>
+            <tbody id="symptomTableBody">
+                <!-- Rows with "Add" button for each symptom -->
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('itching')">Add</button></td><td>itching</td><td>0</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('skin_rash')">Add</button></td><td>skin_rash</td><td>1</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('nodal_skin_eruptions')">Add</button></td><td>nodal_skin_eruptions</td><td>2</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('continuous_sneezing')">Add</button></td><td>continuous_sneezing</td><td>3</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('shivering')">Add</button></td><td>shivering</td><td>4</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('chills')">Add</button></td><td>chills</td><td>5</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('joint_pain')">Add</button></td><td>joint_pain</td><td>6</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('stomach_pain')">Add</button></td><td>stomach_pain</td><td>7</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('acidity')">Add</button></td><td>acidity</td><td>8</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('ulcers_on_tongue')">Add</button></td><td>ulcers_on_tongue</td><td>9</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_wasting')">Add</button></td><td>muscle_wasting</td><td>10</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('vomiting')">Add</button></td><td>vomiting</td><td>11</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('burning_micturition')">Add</button></td><td>burning_micturition</td><td>12</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('spotting_urination')">Add</button></td><td>spotting_urination</td><td>13</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fatigue')">Add</button></td><td>fatigue</td><td>14</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('weight_gain')">Add</button></td><td>weight_gain</td><td>15</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('anxiety')">Add</button></td><td>anxiety</td><td>16</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('cold_hands_and_feets')">Add</button></td><td>cold_hands_and_feets</td><td>17</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('mood_swings')">Add</button></td><td>mood_swings</td><td>18</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('weight_loss')">Add</button></td><td>weight_loss</td><td>19</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('restlessness')">Add</button></td><td>restlessness</td><td>20</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('lethargy')">Add</button></td><td>lethargy</td><td>21</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('patches_in_throat')">Add</button></td><td>patches_in_throat</td><td>22</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('irregular_sugar_level')">Add</button></td><td>irregular_sugar_level</td><td>23</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('cough')">Add</button></td><td>cough</td><td>24</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('high_fever')">Add</button></td><td>high_fever</td><td>25</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('sunken_eyes')">Add</button></td><td>sunken_eyes</td><td>26</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('breathlessness')">Add</button></td><td>breathlessness</td><td>27</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('sweating')">Add</button></td><td>sweating</td><td>28</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dehydration')">Add</button></td><td>dehydration</td><td>29</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('indigestion')">Add</button></td><td>indigestion</td><td>30</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('headache')">Add</button></td><td>headache</td><td>31</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('yellowish_skin')">Add</button></td><td>yellowish_skin</td><td>32</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dark_urine')">Add</button></td><td>dark_urine</td><td>33</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('nausea')">Add</button></td><td>nausea</td><td>34</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('loss_of_appetite')">Add</button></td><td>loss_of_appetite</td><td>35</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_behind_the_eyes')">Add</button></td><td>pain_behind_the_eyes</td><td>36</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('back_pain')">Add</button></td><td>back_pain</td><td>37</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('constipation')">Add</button></td><td>constipation</td><td>38</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('abdominal_pain')">Add</button></td><td>abdominal_pain</td><td>39</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('diarrhoea')">Add</button></td><td>diarrhoea</td><td>40</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('mild_fever')">Add</button></td><td>mild_fever</td><td>41</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('yellow_urine')">Add</button></td><td>yellow_urine</td><td>42</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('yellowing_of_eyes')">Add</button></td><td>yellowing_of_eyes</td><td>43</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('acute_liver_failure')">Add</button></td><td>acute_liver_failure</td><td>44</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fluid_overload')">Add</button></td><td>fluid_overload</td><td>45</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swelling_of_stomach')">Add</button></td><td>swelling_of_stomach</td><td>46</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swelled_lymph_nodes')">Add</button></td><td>swelled_lymph_nodes</td><td>47</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('malaise')">Add</button></td><td>malaise</td><td>48</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('blurred_and_distorted_vision')">Add</button></td><td>blurred_and_distorted_vision</td><td>49</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('phlegm')">Add</button></td><td>phlegm</td><td>50</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('throat_irritation')">Add</button></td><td>throat_irritation</td><td>51</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('redness_of_eyes')">Add</button></td><td>redness_of_eyes</td><td>52</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('sinus_pressure')">Add</button></td><td>sinus_pressure</td><td>53</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('runny_nose')">Add</button></td><td>runny_nose</td><td>54</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('congestion')">Add</button></td><td>congestion</td><td>55</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('chest_pain')">Add</button></td><td>chest_pain</td><td>56</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('weakness_in_limbs')">Add</button></td><td>weakness_in_limbs</td><td>57</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fast_heart_rate')">Add</button></td><td>fast_heart_rate</td><td>58</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_during_bowel_movements')">Add</button></td><td>pain_during_bowel_movements</td><td>59</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_anal_region')">Add</button></td><td>pain_in_anal_region</td><td>60</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('bloody_stool')">Add</button></td><td>bloody_stool</td><td>61</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('irritation_in_anus')">Add</button></td><td>irritation_in_anus</td><td>62</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('neck_pain')">Add</button></td><td>neck_pain</td><td>63</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dizziness')">Add</button></td><td>dizziness</td><td>64</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('cramps')">Add</button></td><td>cramps</td><td>65</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('bruising')">Add</button></td><td>bruising</td><td>66</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('obesity')">Add</button></td><td>obesity</td><td>67</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swollen_legs')">Add</button></td><td>swollen_legs</td><td>68</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swollen_blood_vessels')">Add</button></td><td>swollen_blood_vessels</td><td>69</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('puffy_face_and_eyes')">Add</button></td><td>puffy_face_and_eyes</td><td>70</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('enlarged_thyroid')">Add</button></td><td>enlarged_thyroid</td><td>71</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('brittle_nails')">Add</button></td><td>brittle_nails</td><td>72</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swollen_extremeties')">Add</button></td><td>swollen_extremeties</td><td>73</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('excessive_hunger')">Add</button></td><td>excessive_hunger</td><td>74</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('extra_marital_contacts')">Add</button></td><td>extra_marital_contacts</td><td>75</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('drying_and_tingling_lips')">Add</button></td><td>drying_and_tingling_lips</td><td>76</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('slurred_speech')">Add</button></td><td>slurred_speech</td><td>77</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('knee_pain')">Add</button></td><td>knee_pain</td><td>78</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('hip_joint_pain')">Add</button></td><td>hip_joint_pain</td><td>79</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_weakness')">Add</button></td><td>muscle_weakness</td><td>80</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('stiff_neck')">Add</button></td><td>stiff_neck</td><td>81</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swelling_joints')">Add</button></td><td>swelling_joints</td><td>82</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('movement_stiffness')">Add</button></td><td>movement_stiffness</td><td>83</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('spinning_movements')">Add</button></td><td>spinning_movements</td><td>84</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('loss_of_balance')">Add</button></td><td>loss_of_balance</td><td>85</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('unsteadiness')">Add</button></td><td>unsteadiness</td><td>86</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('weakness_of_one_body_side')">Add</button></td><td>weakness_of_one_body_side</td><td>87</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('loss_of_smell')">Add</button></td><td>loss_of_smell</td><td>88</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('bladder_discomfort')">Add</button></td><td>bladder_discomfort</td><td>89</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('foul_smell_of_urine')">Add</button></td><td>foul_smell_of_urine</td><td>90</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('continuous_feel_of_urine')">Add</button></td><td>continuous_feel_of_urine</td><td>91</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('passage_of_gases')">Add</button></td><td>passage_of_gases</td><td>92</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('internal_itching')">Add</button></td><td>internal_itching</td><td>93</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('toxic_look_(typhos)')">Add</button></td><td>toxic_look_(typhos)</td><td>94</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('depression')">Add</button></td><td>depression</td><td>95</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('irritability')">Add</button></td><td>irritability</td><td>96</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_pain')">Add</button></td><td>muscle_pain</td><td>97</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('altered_sensorium')">Add</button></td><td>altered_sensorium</td><td>98</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('red_spots_over_body')">Add</button></td><td>red_spots_over_body</td><td>99</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('belly_pain')">Add</button></td><td>belly_pain</td><td>100</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('abnormal_menstruation')">Add</button></td><td>abnormal_menstruation</td><td>101</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dischromic_patches')">Add</button></td><td>dischromic_patches</td><td>102</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('watering_from_eyes')">Add</button></td><td>watering_from_eyes</td><td>103</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('increased_appetite')">Add</button></td><td>increased_appetite</td><td>104</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('polyuria')">Add</button></td><td>polyuria</td><td>105</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('family_history')">Add</button></td><td>family_history</td><td>106</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('mucoid_sputum')">Add</button></td><td>mucoid_sputum</td><td>107</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('rusty_sputum')">Add</button></td><td>rusty_sputum</td><td>108</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('lack_of_concentration')">Add</button></td><td>lack_of_concentration</td><td>109</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('visual_disturbances')">Add</button></td><td>visual_disturbances</td><td>110</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('receiving_blood_transfusion')">Add</button></td><td>receiving_blood_transfusion</td><td>111</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('receiving_unsterile_injections')">Add</button></td><td>receiving_unsterile_injections</td><td>112</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('coma')">Add</button></td><td>coma</td><td>113</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('stomach_bleeding')">Add</button></td><td>stomach_bleeding</td><td>114</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('distention_of_abdomen')">Add</button></td><td>distention_of_abdomen</td><td>115</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('history_of_alcohol_consumption')">Add</button></td><td>history_of_alcohol_consumption</td><td>116</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fluid_overload.1')">Add</button></td><td>fluid_overload.1</td><td>117</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('blood_in_sputum')">Add</button></td><td>blood_in_sputum</td><td>118</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('prominent_veins_on_calf')">Add</button></td><td>prominent_veins_on_calf</td><td>119</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('palpitations')">Add</button></td><td>palpitations</td><td>120</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_chest')">Add</button></td><td>pain_in_chest</td><td>121</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_abdomen')">Add</button></td><td>pain_in_abdomen</td><td>122</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dehydration')">Add</button></td><td>dehydration</td><td>123</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('difficulty_in_breathing')">Add</button></td><td>difficulty_in_breathing</td><td>124</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('headache')">Add</button></td><td>headache</td><td>125</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('nausea')">Add</button></td><td>nausea</td><td>126</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('vomiting')">Add</button></td><td>vomiting</td><td>127</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('diarrhea')">Add</button></td><td>diarrhea</td><td>128</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('loss_of_appetite')">Add</button></td><td>loss_of_appetite</td><td>129</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fever')">Add</button></td><td>fever</td><td>130</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('chronic_fever')">Add</button></td><td>chronic_fever</td><td>131</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('weight_loss')">Add</button></td><td>weight_loss</td><td>132</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('fever_in_pregnancy')">Add</button></td><td>fever_in_pregnancy</td><td>133</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('breast_tenderness')">Add</button></td><td>breast_tenderness</td><td>134</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('irregular_periods')">Add</button></td><td>irregular_periods</td><td>135</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('head_ache')">Add</button></td><td>head_ache</td><td>136</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('visual_disturbances.1')">Add</button></td><td>visual_disturbances.1</td><td>137</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('chronic_fever.1')">Add</button></td><td>chronic_fever.1</td><td>138</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swelling_of_face')">Add</button></td><td>swelling_of_face</td><td>139</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swelling_of_ankle')">Add</button></td><td>swelling_of_ankle</td><td>140</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('ulcer')">Add</button></td><td>ulcer</td><td>141</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('dysuria')">Add</button></td><td>dysuria</td><td>142</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('deep_vein_thrombosis')">Add</button></td><td>deep_vein_thrombosis</td><td>143</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('cough')">Add</button></td><td>cough</td><td>144</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('swollen_gums')">Add</button></td><td>swollen_gums</td><td>145</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_joints')">Add</button></td><td>pain_in_joints</td><td>146</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_throat')">Add</button></td><td>pain_in_throat</td><td>147</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('joint_pain')">Add</button></td><td>joint_pain</td><td>148</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_ears')">Add</button></td><td>pain_in_ears</td><td>149</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('sore_throat')">Add</button></td><td>sore_throat</td><td>150</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('ear_discharge')">Add</button></td><td>ear_discharge</td><td>151</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_back')">Add</button></td><td>pain_in_back</td><td>152</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('backache')">Add</button></td><td>backache</td><td>153</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_limb')">Add</button></td><td>pain_in_limb</td><td>154</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('ear_pain')">Add</button></td><td>ear_pain</td><td>155</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_mouth')">Add</button></td><td>pain_in_mouth</td><td>156</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_limb')">Add</button></td><td>pain_in_limb</td><td>157</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_cramps')">Add</button></td><td>muscle_cramps</td><td>158</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('ear_pain')">Add</button></td><td>ear_pain</td><td>159</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_knee')">Add</button></td><td>pain_in_knee</td><td>160</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_pain')">Add</button></td><td>muscle_pain</td><td>161</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_ankle')">Add</button></td><td>pain_in_ankle</td><td>162</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_leg')">Add</button></td><td>pain_in_leg</td><td>163</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_arm')">Add</button></td><td>pain_in_arm</td><td>164</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_fingers')">Add</button></td><td>pain_in_fingers</td><td>165</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_torso')">Add</button></td><td>pain_in_torso</td><td>166</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_jaw')">Add</button></td><td>pain_in_jaw</td><td>167</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_hand')">Add</button></td><td>pain_in_hand</td><td>168</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_toes')">Add</button></td><td>pain_in_toes</td><td>169</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_chest')">Add</button></td><td>pain_in_chest</td><td>170</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_ribs')">Add</button></td><td>pain_in_ribs</td><td>171</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_weakness')">Add</button></td><td>muscle_weakness</td><td>172</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_buttocks')">Add</button></td><td>pain_in_buttocks</td><td>173</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_back')">Add</button></td><td>pain_in_back</td><td>174</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_twitches')">Add</button></td><td>muscle_twitches</td><td>175</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_pain')">Add</button></td><td>muscle_pain</td><td>176</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_head')">Add</button></td><td>pain_in_head</td><td>177</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_leg')">Add</button></td><td>pain_in_leg</td><td>178</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_arm')">Add</button></td><td>pain_in_arm</td><td>179</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_foot')">Add</button></td><td>pain_in_foot</td><td>180</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_wrist')">Add</button></td><td>pain_in_wrist</td><td>181</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_shoulder')">Add</button></td><td>pain_in_shoulder</td><td>182</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_knee')">Add</button></td><td>pain_in_knee</td><td>183</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_elbow')">Add</button></td><td>pain_in_elbow</td><td>184</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_hand')">Add</button></td><td>pain_in_hand</td><td>185</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_foot')">Add</button></td><td>pain_in_foot</td><td>186</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_wrist')">Add</button></td><td>pain_in_wrist</td><td>187</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_shoulder')">Add</button></td><td>pain_in_shoulder</td><td>188</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_elbow')">Add</button></td><td>pain_in_elbow</td><td>189</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_fingers')">Add</button></td><td>pain_in_fingers</td><td>190</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_toes')">Add</button></td><td>pain_in_toes</td><td>191</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_buttocks')">Add</button></td><td>pain_in_buttocks</td><td>192</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_ribs')">Add</button></td><td>pain_in_ribs</td><td>193</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_cramps')">Add</button></td><td>muscle_cramps</td><td>194</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('muscle_weakness')">Add</button></td><td>muscle_weakness</td><td>195</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_head')">Add</button></td><td>pain_in_head</td><td>196</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_chest')">Add</button></td><td>pain_in_chest</td><td>197</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_head')">Add</button></td><td>pain_in_head</td><td>198</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_foot')">Add</button></td><td>pain_in_foot</td><td>199</tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_arm')">Add</button></td><td>pain_in_arm</td><td>200</td></tr>
+                <tr><td><button class="btn btn-primary btn-add" onclick="addSymptom('pain_in_leg')">Add</button></td><td>pain_in_leg</td><td>201</td></tr>
+            </table>
+            
+        </table>
+    </div>
+
+    <script>
+        function addSymptom(symptom) {
+            var inputField = document.getElementById('symptoms');
+            var currentValue = inputField.value;
+            var newValue = currentValue ? `${currentValue}, ${symptom}` : symptom;
+            inputField.value = newValue;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll('#symptomTableBody tr');
+
+            rows.forEach(function(row) {
+                var cells = row.getElementsByTagName('td');
+                var symptom = cells[1].textContent.toLowerCase();
+                if (symptom.indexOf(filter) > -1) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
